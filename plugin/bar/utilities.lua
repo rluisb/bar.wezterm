@@ -88,4 +88,77 @@ H._constant_width = function(prev, next)
   return H._space(next, first_half, second_half)
 end
 
+---get contrasting foreground color for pills (Catppuccin Mocha crust)
+---@param bg_color string
+---@return string
+H._get_contrasting_fg = function(bg_color)
+  -- Use Catppuccin Mocha crust color as default contrasting foreground
+  return "#1e1e2e"
+end
+
+---render a module as a pill with rounded corners
+---@param text string
+---@param icon string
+---@param bg_color string
+---@param fg_color string
+---@param pills_options table
+---@return table
+H._render_pill = function(text, icon, bg_color, fg_color, pills_options)
+  local cells = {}
+
+  -- Left separator (rounded corner)
+  if pills_options.left_separator and pills_options.left_separator ~= "" then
+    table.insert(cells, { Background = { Color = bg_color } })
+    table.insert(cells, { Foreground = { Color = fg_color } })
+    table.insert(cells, { Text = pills_options.left_separator })
+  end
+
+  -- Inner padding
+  if pills_options.inner_padding > 0 then
+    table.insert(cells, { Background = { Color = bg_color } })
+    table.insert(cells, { Text = string.rep(" ", pills_options.inner_padding) })
+  end
+
+  -- Icon and text content
+  table.insert(cells, { Background = { Color = bg_color } })
+  table.insert(cells, { Foreground = { Color = fg_color } })
+  table.insert(cells, { Text = icon .. H._space(text, pills_options.separator_space or 1) })
+
+  -- Inner padding
+  if pills_options.inner_padding > 0 then
+    table.insert(cells, { Background = { Color = bg_color } })
+    table.insert(cells, { Text = string.rep(" ", pills_options.inner_padding) })
+  end
+
+  -- Right separator (rounded corner)
+  if pills_options.right_separator and pills_options.right_separator ~= "" then
+    table.insert(cells, { Background = { Color = bg_color } })
+    table.insert(cells, { Foreground = { Color = fg_color } })
+    table.insert(cells, { Text = pills_options.right_separator })
+  end
+
+  -- Reset background after pill
+  table.insert(cells, { Background = { Color = "transparent" } })
+
+  -- Add spacing between pills
+  if pills_options.separator_space > 0 then
+    table.insert(cells, { Text = string.rep(" ", pills_options.separator_space) })
+  end
+
+  return cells
+end
+
+---render a module in flat style (current behavior)
+---@param text string
+---@param icon string
+---@param fg_color string
+---@param options table
+---@return table
+H._render_flat = function(text, icon, fg_color, options)
+  local cells = {}
+  table.insert(cells, { Foreground = { Color = fg_color } })
+  table.insert(cells, { Text = icon .. H._space(text, options.separator.space) })
+  return cells
+end
+
 return H

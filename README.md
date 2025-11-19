@@ -68,6 +68,7 @@ bar.apply_to_config(
 local config = {
   position = "bottom",
   max_width = 32,
+  style = "flat", -- "flat" or "pills"
   padding = {
     left = 1,
     right = 1,
@@ -81,6 +82,12 @@ local config = {
     left_icon = wez.nerdfonts.fa_long_arrow_right,
     right_icon = wez.nerdfonts.fa_long_arrow_left,
     field_icon = wez.nerdfonts.indent_line,
+  },
+  pills = {
+    left_separator = "",
+    right_separator = "",
+    inner_padding = 1,
+    separator_space = 1,
   },
   modules = {
     tabs = {
@@ -139,6 +146,57 @@ local config = {
   },
 }
 ```
+
+### 💊 Pills Style
+
+bar.wezterm supports a pills style for modules, similar to catppuccin/tmux, where each module is rendered as a separate pill with background colors and rounded corners.
+
+#### Enable Pills Style
+
+```lua
+bar.apply_to_config(config, {
+  style = "pills"
+})
+```
+
+#### Customize Pills Appearance
+
+```lua
+bar.apply_to_config(config, {
+  style = "pills",
+  pills = {
+    left_separator = "",
+    right_separator = "",
+    inner_padding = 2,
+    separator_space = 1
+  }
+})
+```
+
+#### Per-Module Customization
+
+```lua
+bar.apply_to_config(config, {
+  style = "pills",
+  modules = {
+    clock = {
+      bg_color = "#f5c2e7",  -- Custom pink background
+      fg_color = "#1e1e2e",  -- Dark text for contrast
+      text = "Time"          -- Custom label
+    },
+    username = {
+      bg_color = "#a6e3a1",  -- Custom green background
+      fg_color = "#1e1e2e"   -- Dark text for contrast
+    }
+  }
+})
+```
+
+#### Default Catppuccin Mocha Colors
+
+When using pills style without custom colors, each module uses:
+- **Background**: The module's configured ansi color from your color scheme
+- **Foreground**: `#1e1e2e` (Catppuccin Mocha crust) for optimal contrast against colored backgrounds
 
 ### 🎨 Colors
 

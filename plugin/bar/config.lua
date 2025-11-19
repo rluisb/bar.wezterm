@@ -15,10 +15,19 @@ local M = {}
 ---@field active_tab_fg number
 ---@field inactive_tab_fg number
 
+---@class option.pills
+---@field left_separator string
+---@field right_separator string
+---@field inner_padding number
+---@field separator_space number
+
 ---@class option.module
 ---@field enabled boolean
 ---@field icon string
 ---@field color number
+---@field bg_color? number | string
+---@field fg_color? number | string
+---@field text? string
 
 ---@class option.spotify : option.module
 ---@field max_width number
@@ -48,12 +57,15 @@ local M = {}
 ---@class bar.options
 ---@field position "top" | "bottom"
 ---@field max_width number
+---@field style "flat" | "pills"
 ---@field separator option.separator
 ---@field modules option.modules
+---@field pills option.pills
 ---@field padding option.padding
 M.options = {
   position = "bottom",
   max_width = 32,
+  style = "flat",
   padding = {
     left = 1,
     right = 1,
@@ -67,6 +79,12 @@ M.options = {
     left_icon = wez.nerdfonts.fa_long_arrow_right,
     right_icon = wez.nerdfonts.fa_long_arrow_left,
     field_icon = wez.nerdfonts.indent_line,
+  },
+  pills = {
+    left_separator = "",
+    right_separator = "",
+    inner_padding = 1,
+    separator_space = 1,
   },
   modules = {
     tabs = {

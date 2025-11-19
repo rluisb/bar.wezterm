@@ -128,27 +128,49 @@ wez.on("update-status", function(window, pane)
   table.insert(left_cells, { Text = string.rep(" ", options.padding.left) })
 
   if options.modules.workspace.enabled then
-    local stat = options.modules.workspace.icon .. utilities._space(window:active_workspace(), options.separator.space)
-    local stat_fg = palette.ansi[options.modules.workspace.color]
+    local stat = options.modules.workspace.text or window:active_workspace()
+    local stat_icon = options.modules.workspace.icon
+    local stat_color = options.modules.workspace.color
 
     if options.modules.leader.enabled and window:leader_is_active() then
-      stat_fg = palette.ansi[options.modules.leader.color]
+      stat_color = options.modules.leader.color
       stat = utilities._constant_width(stat, options.modules.leader.icon)
+      stat_icon = options.modules.leader.icon
     end
 
-    table.insert(left_cells, { Foreground = { Color = stat_fg } })
-    table.insert(left_cells, { Text = stat })
+    local bg_color = options.modules.workspace.bg_color or palette.ansi[stat_color]
+    local fg_color = options.modules.workspace.fg_color or utilities._get_contrasting_fg(bg_color)
+
+    local module_cells
+    if options.style == "pills" then
+      module_cells = utilities._render_pill(stat, stat_icon, bg_color, fg_color, options.pills)
+    else
+      module_cells = utilities._render_flat(stat, stat_icon, palette.ansi[stat_color], options)
+    end
+
+    for _, cell in ipairs(module_cells) do
+      table.insert(left_cells, cell)
+    end
   end
 
   if options.modules.zoom.enabled then
     local panes_with_info = pane:tab():panes_with_info()
     for _, p in ipairs(panes_with_info) do
       if p.is_active and p.is_zoomed then
-        table.insert(left_cells, { Foreground = { Color = palette.ansi[options.modules.zoom.color] } })
-        table.insert(
-          left_cells,
-          { Text = options.modules.zoom.icon .. utilities._space("zoom", options.separator.space) }
-        )
+        local stat = options.modules.zoom.text or "zoom"
+        local bg_color = options.modules.zoom.bg_color or palette.ansi[options.modules.zoom.color]
+        local fg_color = options.modules.zoom.fg_color or utilities._get_contrasting_fg(bg_color)
+
+        local module_cells
+        if options.style == "pills" then
+          module_cells = utilities._render_pill(stat, options.modules.zoom.icon, bg_color, fg_color, options.pills)
+        else
+          module_cells = utilities._render_flat(stat, options.modules.zoom.icon, palette.ansi[options.modules.zoom.color], options)
+        end
+
+        for _, cell in ipairs(module_cells) do
+          table.insert(left_cells, cell)
+        end
       end
     end
   end
@@ -158,11 +180,20 @@ wez.on("update-status", function(window, pane)
     if not process then
       goto set_left_status
     end
-    table.insert(left_cells, { Foreground = { Color = palette.ansi[options.modules.pane.color] } })
-    table.insert(
-      left_cells,
-      { Text = options.modules.pane.icon .. utilities._space(utilities._basename(process), options.separator.space) }
-    )
+    local stat = options.modules.pane.text or utilities._basename(process)
+    local bg_color = options.modules.pane.bg_color or palette.ansi[options.modules.pane.color]
+    local fg_color = options.modules.pane.fg_color or utilities._get_contrasting_fg(bg_color)
+
+    local module_cells
+    if options.style == "pills" then
+      module_cells = utilities._render_pill(stat, options.modules.pane.icon, bg_color, fg_color, options.pills)
+    else
+      module_cells = utilities._render_flat(stat, options.modules.pane.icon, palette.ansi[options.modules.pane.color], options)
+    end
+
+    for _, cell in ipairs(module_cells) do
+      table.insert(left_cells, cell)
+    end
   end
 
   ::set_left_status::
@@ -214,19 +245,35 @@ wez.on("update-status", function(window, pane)
     end
     local text = func()
     if #text > 0 then
-      table.insert(right_cells, { Foreground = { Color = palette.ansi[options.modules[name].color] } })
-      table.insert(right_cells, { Text = text })
-      table.insert(right_cells, { Foreground = { Color = palette.brights[1] } })
-      table.insert(right_cells, {
-        Text = utilities._space(options.separator.right_icon, options.separator.space, nil)
-          .. options.modules[name].icon,
-      })
-      table.insert(right_cells, { Text = utilities._space(options.separator.field_icon, options.separator.space, nil) })
+      local custom_text = options.modules[name].text or text
+      local bg_color = options.modules[name].bg_color or palette.ansi[options.modules[name].color]
+      local fg_color = options.modules[name].fg_color or utilities._get_contrasting_fg(bg_color)
+
+      local module_cells
+      if options.style == "pills" then
+        module_cells = utilities._render_pill(custom_text, options.modules[name].icon, bg_color, fg_color, options.pills)
+      else
+        -- Flat style: text + icon with separators (current behavior)
+        module_cells = {
+          { Foreground = { Color = palette.ansi[options.modules[name].color] } },
+          { Text = text },
+          { Foreground = { Color = palette.brights[1] } },
+          { Text = utilities._space(options.separator.right_icon, options.separator.space, nil) .. options.modules[name].icon },
+          { Text = utilities._space(options.separator.field_icon, options.separator.space, nil) }
+        }
+      end
+
+      for _, cell in ipairs(module_cells) do
+        table.insert(right_cells, cell)
+      end
     end
     ::continue::
   end
-  -- remove trailing separator
-  table.remove(right_cells, #right_cells)
+
+  -- remove trailing separator for flat style, but keep for pills
+  if options.style == "flat" then
+    table.remove(right_cells, #right_cells)
+  end
   table.insert(right_cells, { Text = string.rep(" ", options.padding.right) })
 
   window:set_right_status(wez.format(right_cells))
